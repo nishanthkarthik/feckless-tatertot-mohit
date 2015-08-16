@@ -66,11 +66,14 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Margin="10,5" Text="Material of Tube"/>
             <ComboBox Grid.Row="1" Margin="10,0" x:Name="MaterialComboBox" SelectionChanged="MaterialComboBox_OnSelectionChanged" ToolTip="Select material of Tube"/>
             <TextBlock Grid.Row="2" Margin="10,5" Text="Type of fluid flow"/>
             <ComboBox Grid.Row="3" Margin="10,0" x:Name="FluidTypeComboBox" SelectionChanged="FluidTypeComboBox_OnSelectionChanged" ToolTip="Select type of fluid contact"/>
+            <Button Click="ComputeSecondary_OnClick" Grid.Row="4" Height="30" Content="Compute secondary inputs" Margin="10,5"/>
         </Grid>
     </Grid>
 </Window>

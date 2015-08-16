@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace HeatExchange
@@ -66,6 +65,11 @@ namespace HeatExchange
         private void FluidTypeComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             GlobalInputs.FluidSysType = (SciHelper.FluidSystemType)FluidTypeComboBox.SelectedIndex;
+        }
+
+        private void ComputeSecondary_OnClick(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

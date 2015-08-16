@@ -93,12 +93,52 @@ namespace HeatExchange
         }
     }
 
+    public class TubeInside
+    {
+        public double Nt { get; set; }
+        public double TotalHeatArea { get; set; }
+        public double TotalMinFfArea { get; set; }
+        public double CoreFrontalArea { get; set; }
+        public double RatioFfFrontalArea { get; set; }
+        public double HydDiameter { get; set; }
+        public double TubeLforHeatTransfer { get; set; }
+        public double TubeLforPressureDrop { get; set; }
+        public double SurfaceAreaDensity { get; set; }
+    }
+
+    public class TubeOutsideInline
+    {
+        public double NtPrime { get; set; }
+        public double TotalHeatArea { get; set; }
+        public double TotalMinFfArea { get; set; }
+        public double FrontalArea { get; set; }
+        public double RatioFfFrontalArea { get; set; }
+        public double HydDiameter { get; set; }
+        public double HeatExchTotalVolume { get; set; }
+        public double TubeLforPressureDrop { get; set; }
+        public double SurfaceAreaDensity { get; set; }
+    }
+
+    public class TubeOutsideStaggered
+    {
+        public double NtStaggered { get; set; }
+        public double TotalHeatArea { get; set; }
+        public double TotalMinFfArea { get; set; }
+        public double FrontalArea { get; set; }
+        public double RatioFfFrontalArea { get; set; }
+        public double HydDiameter { get; set; }
+        public double HeatExchTotalVolume { get; set; }
+        public double TubeLforPressureDrop { get; set; }
+        public double SurfaceAreaDensity { get; set; }
+    }
+
     public class SystemInputStream
     {
         public List<Reading> NumericalReadings { get; set; }
         public SciHelper.SystemType SysType { get; set; }
         public SciHelper.FluidSystemType FluidSysType { get; set; }
         public double MaterialCoeff { get; set; }
+
     }
 
 }
