@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -30,6 +31,18 @@ namespace HeatExchange
                 SystemTypeComboBox.Items.Add(s);
             }
 
+            //Populate Materials
+            foreach (KeyValuePair<string, double> keyValuePair in SciHelper.Materials)
+            {
+                MaterialComboBox.Items.Add(keyValuePair.Key);
+            }
+
+            //Populate Fluid flow
+            foreach (string s in SciHelper.FluidSystemTypes)
+            {
+                FluidTypeComboBox.Items.Add(s);
+            }
+
             //Populate Input parameters
             GlobalInputs.NumericalReadings = new List<Reading>();
             foreach (KeyValuePair<string, double> systemInputPair in SciHelper.NumericalInputs)
@@ -43,6 +56,16 @@ namespace HeatExchange
         {
             GlobalInputs.SysType = (SciHelper.SystemType)SystemTypeComboBox.SelectedIndex;
             ConfigImage.Source = new BitmapImage(new Uri("Assets/" + GlobalInputs.SysType + ".png", UriKind.Relative));
+        }
+
+        private void MaterialComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GlobalInputs.MaterialCoeff = SciHelper.Materials.ElementAt(MaterialComboBox.SelectedIndex).Value;
+        }
+
+        private void FluidTypeComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            GlobalInputs.FluidSysType = (SciHelper.FluidSystemType)FluidTypeComboBox.SelectedIndex;
         }
     }
 }

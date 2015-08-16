@@ -98,6 +98,7 @@ namespace HeatExchange
         public List<Reading> NumericalReadings { get; set; }
         public SciHelper.SystemType SysType { get; set; }
         public SciHelper.FluidSystemType FluidSysType { get; set; }
+        public double MaterialCoeff { get; set; }
     }
 
 }
