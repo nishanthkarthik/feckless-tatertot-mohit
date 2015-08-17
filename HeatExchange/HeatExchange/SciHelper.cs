@@ -103,7 +103,7 @@ namespace HeatExchange
                 _input.TubeInsideData.SurfaceAreaDensity = (Math.PI * Di * L1 * _input.Nt) / (L1 * L2 * L3);
 
                 //Tube outside computation
-                _input.TubeOutsideInlineData.FrontalArea = (Math.PI * Do * L1 * _input.Nt) +
+                _input.TubeOutsideInlineData.TotalHeatArea = (Math.PI * Do * L1 * _input.Nt) +
                                                            2 * ((L2 * L3) - (Math.PI * Di * Di * _input.Nt / 4));
                 _input.TubeOutsideInlineData.NtDash = L3 / Xt;
                 _input.TubeOutsideInlineData.TotalMinFfArea = (Xt - Do) * _input.TubeOutsideInlineData.NtDash * L1;
@@ -166,7 +166,7 @@ namespace HeatExchange
                 {
                     return parsedValue;
                 }
-                Application.Current.Dispatcher.BeginInvoke(new Action<Reading>((sender) =>
+                Application.Current.Dispatcher.BeginInvoke(new Action<Reading>(sender =>
                 {
                     MessageBox.Show("Invalid input => " + ValueString);
                 }), this);
