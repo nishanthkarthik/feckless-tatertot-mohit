@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
+// ReSharper disable InconsistentNaming
 
 namespace HeatExchange
 {
@@ -69,6 +71,25 @@ namespace HeatExchange
         };
         #endregion
 
+        //Sceondary Input parameter computation
+        public static void ComputeSecondaryInputs(ref SystemInputStream systemInput)
+        {
+            double L1 = systemInput.NumericalReadings.First(x => x.Parameter == "L1").Value;
+            double L2 = systemInput.NumericalReadings.First(x => x.Parameter == "L2").Value;
+            double L3 = systemInput.NumericalReadings.First(x => x.Parameter == "L3").Value;
+            double Xt = systemInput.NumericalReadings.First(x => x.Parameter == "Xt").Value;
+            double Xl = systemInput.NumericalReadings.First(x => x.Parameter == "Xl").Value;
+            double Do = systemInput.NumericalReadings.First(x => x.Parameter == "Do").Value;
+            double Di = systemInput.NumericalReadings.First(x => x.Parameter == "Di").Value;
+            double DelH = systemInput.NumericalReadings.First(x => x.Parameter == "DelH").Value;
+            double Qout = systemInput.NumericalReadings.First(x => x.Parameter == "Qout").Value;
+            double Qin = systemInput.NumericalReadings.First(x => x.Parameter == "Qin").Value;
+            double Tout = systemInput.NumericalReadings.First(x => x.Parameter == "Tout").Value;
+            double Tin = systemInput.NumericalReadings.First(x => x.Parameter == "Tin").Value;
+            double Pout = systemInput.NumericalReadings.First(x => x.Parameter == "Pout").Value;
+            double Pin = systemInput.NumericalReadings.First(x => x.Parameter == "Pin").Value;
+        }
+
     }
 
     public class Reading
@@ -95,7 +116,6 @@ namespace HeatExchange
 
     public class TubeInside
     {
-        public double Nt { get; set; }
         public double TotalHeatArea { get; set; }
         public double TotalMinFfArea { get; set; }
         public double CoreFrontalArea { get; set; }
@@ -108,7 +128,6 @@ namespace HeatExchange
 
     public class TubeOutsideInline
     {
-        public double NtPrime { get; set; }
         public double TotalHeatArea { get; set; }
         public double TotalMinFfArea { get; set; }
         public double FrontalArea { get; set; }
@@ -121,8 +140,10 @@ namespace HeatExchange
 
     public class TubeOutsideStaggered
     {
-        public double NtStaggered { get; set; }
         public double TotalHeatArea { get; set; }
+        public double A { get; set; }
+        public double B { get; set; }
+        public double C { get; set; }
         public double TotalMinFfArea { get; set; }
         public double FrontalArea { get; set; }
         public double RatioFfFrontalArea { get; set; }
@@ -138,7 +159,10 @@ namespace HeatExchange
         public SciHelper.SystemType SysType { get; set; }
         public SciHelper.FluidSystemType FluidSysType { get; set; }
         public double MaterialCoeff { get; set; }
-
+        public double Nt { get; set; }
+        public TubeInside TubeInsideData { get; set; }
+        public TubeOutsideInline TubeOutsideInlineData { get; set; }
+        public TubeOutsideStaggered TubeOutsideStaggered { get; set; }
     }
 
 }
