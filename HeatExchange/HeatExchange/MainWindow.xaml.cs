@@ -59,6 +59,7 @@ namespace HeatExchange
         private void ComputeSecondary_OnClick(object sender, RoutedEventArgs e)
         {
             SciHelper.ComputeSecondaryInputs(ref GlobalInputs);
+            SciHelper.ComputeAdditionalProperty(ref GlobalInputs);
         }
     }
 }

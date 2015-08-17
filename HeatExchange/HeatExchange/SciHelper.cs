@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 // ReSharper disable InconsistentNaming
+// ReSharper disable JoinDeclarationAndInitializer
 
 namespace HeatExchange
 {
@@ -62,12 +63,20 @@ namespace HeatExchange
             { "Do", 0 },
             { "Di", 0 },
             { "DelH", 0 },
-            { "Qout", 0 },
-            { "Qin", 0 },
-            { "Tout", 0 },
-            { "Tin", 0 },
-            { "Pout", 0 },
-            { "Pin", 0 },
+
+            { "QoutWater", 0 },
+            { "QinWater", 0 },
+            { "ToutWater", 0 },
+            { "TinWater", 0 },
+            { "PoutWater", 0 },
+            { "PinWater", 0 },
+
+            { "QoutAir", 0 },
+            { "QinAir", 0 },
+            { "ToutAir", 0 },
+            { "TinAir", 0 },
+            { "PoutAir", 0 },
+            { "PinAir", 0 }
         };
         #endregion
 
@@ -82,12 +91,6 @@ namespace HeatExchange
             double Do = _input.NumericalReadings.First(x => x.Parameter == "Do").Value;
             double Di = _input.NumericalReadings.First(x => x.Parameter == "Di").Value;
             double DelH = _input.NumericalReadings.First(x => x.Parameter == "DelH").Value;
-            double Qout = _input.NumericalReadings.First(x => x.Parameter == "Qout").Value;
-            double Qin = _input.NumericalReadings.First(x => x.Parameter == "Qin").Value;
-            double Tout = _input.NumericalReadings.First(x => x.Parameter == "Tout").Value;
-            double Tin = _input.NumericalReadings.First(x => x.Parameter == "Tin").Value;
-            double Pout = _input.NumericalReadings.First(x => x.Parameter == "Pout").Value;
-            double Pin = _input.NumericalReadings.First(x => x.Parameter == "Pin").Value;
 
             if (_input.SysType == SystemType.Inline)
             {
@@ -146,11 +149,63 @@ namespace HeatExchange
                                                           _input.TubeOutsideStaggered.TotalHeatArea;
                 _input.TubeOutsideStaggered.TubeLforPressureDrop = L2;
                 _input.TubeOutsideStaggered.HeatExchTotalVolume = L1 * L2 * L3;
-                _input.TubeOutsideStaggered.SurfaceAreaDensity = _input.TubeOutsideStaggered.TotalHeatArea/
+                _input.TubeOutsideStaggered.SurfaceAreaDensity = _input.TubeOutsideStaggered.TotalHeatArea /
                                                                  _input.TubeOutsideStaggered.HeatExchTotalVolume;
             }
         }
 
+        public static void ComputeAdditionalProperty(ref SystemInputStream _in)
+        {
+            const double Epsilon = 0.75;
+
+            //All properties are final state
+            double DensityWaterInFinal;
+            double DensityWaterOutFinal;
+            double DensityAirInFinal;
+            double DensityAirOutFinal;
+
+            double MassFlowWaterInFinal;
+            double MassFlowWaterOutFinal;
+            double MassFlowAirInFinal;
+            double MassFlowAirOutFinal;
+
+            double TWaterOutFinal;
+            double TAirOutFinal;
+            double TWaterMeanFinal;
+            double TAirMeanFinal;
+
+            double QoutWater = _in.NumericalReadings.First(x => x.Parameter == "QoutWater").Value;
+            double QinWater = _in.NumericalReadings.First(x => x.Parameter == "QinWater").Value;
+            double ToutWater = _in.NumericalReadings.First(x => x.Parameter == "ToutWater").Value;
+            double TinWater = _in.NumericalReadings.First(x => x.Parameter == "TinWater").Value;
+            double PoutWater = _in.NumericalReadings.First(x => x.Parameter == "PoutWater").Value;
+            double PinWater = _in.NumericalReadings.First(x => x.Parameter == "PinWater").Value;
+
+            double QoutAir = _in.NumericalReadings.First(x => x.Parameter == "QoutAir").Value;
+            double QinAir = _in.NumericalReadings.First(x => x.Parameter == "QinAir").Value;
+            double ToutAir = _in.NumericalReadings.First(x => x.Parameter == "ToutAir").Value;
+            double TinAir = _in.NumericalReadings.First(x => x.Parameter == "TinAir").Value;
+            double PoutAir = _in.NumericalReadings.First(x => x.Parameter == "PoutAir").Value;
+            double PinAir = _in.NumericalReadings.First(x => x.Parameter == "PinAir").Value;
+
+            DensityWaterInFinal = PinWater / (287.04 * (273.15 + TinWater));
+            DensityAirInFinal = PinAir / (287.04 * (273.15 + TinAir));
+            DensityWaterOutFinal = PoutWater / (287.04 * (273.15 + ToutWater));
+            DensityAirOutFinal = PoutAir / (287.04 * (273.15 + ToutAir));
+
+            MassFlowWaterInFinal = QinWater * DensityWaterInFinal;
+            MassFlowWaterOutFinal = QoutWater * DensityWaterOutFinal;
+            MassFlowAirInFinal = QinAir * DensityAirInFinal;
+            MassFlowAirOutFinal = QoutAir * DensityAirOutFinal;
+
+            TWaterOutFinal = TinWater - Epsilon * (TinWater - TinAir);
+            TAirOutFinal = TinAir + Epsilon * (MassFlowWaterOutFinal / MassFlowAirOutFinal) * (TinWater - TinAir);
+            TWaterMeanFinal = (TWaterOutFinal + TinWater) / 2;
+            TAirMeanFinal = (TAirOutFinal + TinAir) / 2;
+
+
+
+        }
     }
 
     public class Reading
