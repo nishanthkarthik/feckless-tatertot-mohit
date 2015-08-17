@@ -36,12 +36,6 @@ namespace HeatExchange
                 MaterialComboBox.Items.Add(keyValuePair.Key);
             }
 
-            //Populate Fluid flow
-            foreach (string s in SciHelper.FluidSystemTypes)
-            {
-                FluidTypeComboBox.Items.Add(s);
-            }
-
             //Populate Input parameters
             GlobalInputs.NumericalReadings = new List<Reading>();
             foreach (KeyValuePair<string, double> systemInputPair in SciHelper.NumericalInputs)
@@ -62,14 +56,9 @@ namespace HeatExchange
             GlobalInputs.MaterialCoeff = SciHelper.Materials.ElementAt(MaterialComboBox.SelectedIndex).Value;
         }
 
-        private void FluidTypeComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            GlobalInputs.FluidSysType = (SciHelper.FluidSystemType)FluidTypeComboBox.SelectedIndex;
-        }
-
         private void ComputeSecondary_OnClick(object sender, RoutedEventArgs e)
         {
-
+            SciHelper.ComputeSecondaryInputs(ref GlobalInputs);
         }
     }
 }
