@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using HeatExchange.CoolProp;
 
 namespace HeatExchange
 {
@@ -19,6 +20,8 @@ namespace HeatExchange
         {
             InitializeComponent();
             Loaded += MainWindow_Loaded;
+            XPlatHelper.DeterminePlatform();
+
             GlobalInputs = new SystemInputStream();
         }
 
