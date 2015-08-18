@@ -64,19 +64,13 @@ namespace HeatExchange
             { "Di", 0 },
             { "DelH", 0 },
 
-            { "QoutWater", 0 },
-            { "QinWater", 0 },
-            { "ToutWater", 0 },
-            { "TinWater", 0 },
-            { "PoutWater", 0 },
-            { "PinWater", 0 },
+            { "QWaterInitial", 0 },
+            { "TWaterInitial", 0 },
+            { "PWaterInitial", 0 },
 
-            { "QoutAir", 0 },
-            { "QinAir", 0 },
-            { "ToutAir", 0 },
-            { "TinAir", 0 },
-            { "PoutAir", 0 },
-            { "PinAir", 0 }
+            { "QAirInitial", 0 },
+            { "TAirInitial", 0 },
+            { "PAirInitial", 0 }
         };
         #endregion
 
@@ -159,52 +153,73 @@ namespace HeatExchange
             const double Epsilon = 0.75;
 
             //All properties are final state
-            double DensityWaterInFinal;
-            double DensityWaterOutFinal;
-            double DensityAirInFinal;
-            double DensityAirOutFinal;
+            double DensityWaterFinal;
+            double DensityAirFinal;
 
-            double MassFlowWaterInFinal;
-            double MassFlowWaterOutFinal;
-            double MassFlowAirInFinal;
-            double MassFlowAirOutFinal;
+            double MassFlowWaterFinal;
+            double MassFlowAirFinal;
 
-            double TWaterOutFinal;
-            double TAirOutFinal;
+            double TWaterFinal;
+            double TAirFinal;
             double TWaterMeanFinal;
             double TAirMeanFinal;
 
-            double QoutWater = _in.NumericalReadings.First(x => x.Parameter == "QoutWater").Value;
-            double QinWater = _in.NumericalReadings.First(x => x.Parameter == "QinWater").Value;
-            double ToutWater = _in.NumericalReadings.First(x => x.Parameter == "ToutWater").Value;
-            double TinWater = _in.NumericalReadings.First(x => x.Parameter == "TinWater").Value;
-            double PoutWater = _in.NumericalReadings.First(x => x.Parameter == "PoutWater").Value;
-            double PinWater = _in.NumericalReadings.First(x => x.Parameter == "PinWater").Value;
+            double QWaterInitial = _in.NumericalReadings.First(x => x.Parameter == "QWaterInitial").Value;
+            double TWaterInitial = _in.NumericalReadings.First(x => x.Parameter == "TWaterInitial").Value;
+            double PWaterInitial = _in.NumericalReadings.First(x => x.Parameter == "PWaterInitial").Value;
 
-            double QoutAir = _in.NumericalReadings.First(x => x.Parameter == "QoutAir").Value;
-            double QinAir = _in.NumericalReadings.First(x => x.Parameter == "QinAir").Value;
-            double ToutAir = _in.NumericalReadings.First(x => x.Parameter == "ToutAir").Value;
-            double TinAir = _in.NumericalReadings.First(x => x.Parameter == "TinAir").Value;
-            double PoutAir = _in.NumericalReadings.First(x => x.Parameter == "PoutAir").Value;
-            double PinAir = _in.NumericalReadings.First(x => x.Parameter == "PinAir").Value;
+            double QAirInitial = _in.NumericalReadings.First(x => x.Parameter == "QAirInitial").Value;
+            double TAirInitial = _in.NumericalReadings.First(x => x.Parameter == "TAirInitial").Value;
+            double PAirInitial = _in.NumericalReadings.First(x => x.Parameter == "PAirInitial").Value;
 
-            DensityWaterInFinal = PinWater / (287.04 * (273.15 + TinWater));
-            DensityAirInFinal = PinAir / (287.04 * (273.15 + TinAir));
-            DensityWaterOutFinal = PoutWater / (287.04 * (273.15 + ToutWater));
-            DensityAirOutFinal = PoutAir / (287.04 * (273.15 + ToutAir));
+            DensityWaterFinal = PWaterInitial / (287.04 * (273.15 + TWaterInitial));
+            DensityAirFinal = PAirInitial / (287.04 * (273.15 + TAirInitial));
 
-            MassFlowWaterInFinal = QinWater * DensityWaterInFinal;
-            MassFlowWaterOutFinal = QoutWater * DensityWaterOutFinal;
-            MassFlowAirInFinal = QinAir * DensityAirInFinal;
-            MassFlowAirOutFinal = QoutAir * DensityAirOutFinal;
+            MassFlowWaterFinal = QWaterInitial * DensityWaterFinal;
+            MassFlowAirFinal = QAirInitial * DensityAirFinal;
 
-            TWaterOutFinal = TinWater - Epsilon * (TinWater - TinAir);
-            TAirOutFinal = TinAir + Epsilon * (MassFlowWaterOutFinal / MassFlowAirOutFinal) * (TinWater - TinAir);
-            TWaterMeanFinal = (TWaterOutFinal + TinWater) / 2;
-            TAirMeanFinal = (TAirOutFinal + TinAir) / 2;
+            TWaterFinal = TWaterInitial - Epsilon * (TWaterInitial - TAirInitial);
+            TAirFinal = TAirInitial + Epsilon * (MassFlowWaterFinal / MassFlowAirFinal) * (TWaterInitial - TAirInitial);
+            TWaterMeanFinal = (TWaterFinal + TWaterInitial) / 2;
+            TAirMeanFinal = (TAirFinal + TAirInitial) / 2;
 
 
+            //Calculate additional properties
+            double ViscosityAir = CoolProp.PropsSI("V", "T", TAirMeanFinal, "P", 101325, "Air");
+            double ViscosityWater = CoolProp.PropsSI("V", "T", TWaterMeanFinal, "P", 101325, "Water");
+            double CpAir = CoolProp.PropsSI("CPMASS", "T", TWaterMeanFinal, "P", 101325, "Water");
+            double CpWater = CoolProp.PropsSI("CPMASS", "T", TWaterMeanFinal, "P", 101325, "Water");
+            double PrandtlAir = CoolProp.PropsSI("CPMASS", "T", TWaterMeanFinal, "P", 101325, "Water");
+            double PrandtlWater = CoolProp.PropsSI("CPMASS", "T", TWaterMeanFinal, "P", 101325, "Water");
 
+            double G_Air = MassFlowAirFinal /
+                              ((_in.SysType == SystemType.Inline)
+                                  ? _in.TubeOutsideInlineData.TotalMinFfArea
+                                  : _in.TubeOutsideStaggered.TotalMinFfArea);
+
+            double G_Water = MassFlowWaterFinal /
+                                          ((_in.SysType == SystemType.Inline)
+                                              ? _in.TubeOutsideInlineData.TotalMinFfArea
+                                              : _in.TubeOutsideStaggered.TotalMinFfArea);
+
+            double Reynolds_Air = G_Air * ((_in.SysType == SystemType.Inline)
+                ? _in.TubeOutsideInlineData.HydDiameter
+                : _in.TubeOutsideStaggered.HydDiameter) / ViscosityAir;
+
+            double Reynolds_Water = G_Water * ((_in.SysType == SystemType.Inline)
+                ? _in.TubeOutsideInlineData.HydDiameter
+                : _in.TubeOutsideStaggered.HydDiameter) / ViscosityWater;
+
+            double J_Water = 0.044;
+            double F_Water = 0.044;
+            double J_Air = 0.044;
+            double F_Air = 0.044;
+
+            double H_Water = J_Water * G_Water * CpWater / Math.Pow(PrandtlWater, (double)2 / 3);
+            double H_Air = J_Air * G_Air * CpAir / Math.Pow(PrandtlAir, (double)2 / 3);
+
+            double AbsCpWater;
+            double AbsCpAir;
         }
     }
 

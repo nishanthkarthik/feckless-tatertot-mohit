@@ -88,7 +88,7 @@
     <Compile Include="CoolPropXplat\SWIGTYPE_p_std__vectorT_std__string_t.cs" />
     <Compile Include="CoolPropXplat\SWIGTYPE_p_std__vectorT_std__vectorT_double_t_t.cs" />
     <Compile Include="SciHelper.cs" />
-    <Compile Include="CoolProp\XPlatHelper.cs" />
+    <Compile Include="CoolPropHelper\XPlatHelper.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
