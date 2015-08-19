@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 // ReSharper disable InconsistentNaming
 // ReSharper disable JoinDeclarationAndInitializer
@@ -64,8 +65,9 @@ namespace HeatExchange
             { "Do", 0 },
             { "Di", 0 },
             { "DelH", 0 },
-            { "Nr", 0 },
+            //{ "Nr", 0 },
             { "FinPitch", 0 },
+            { "FinThickness", 0 },
 
             { "QWaterInitial", 0 },
             { "TWaterInitial", 0 },
@@ -153,6 +155,7 @@ namespace HeatExchange
 
         public static void ComputeAdditionalProperty(ref SystemInputStream _in)
         {
+            #region Variable declarations
             const double Epsilon = 0.75;
 
             //All properties are final state
@@ -166,7 +169,9 @@ namespace HeatExchange
             double TAirFinal;
             double TWaterMeanFinal;
             double TAirMeanFinal;
+            #endregion
 
+            #region User Input acquisition
             double L1 = _in.NumericalReadings.First(x => x.Parameter == "L1").Value;
             double L2 = _in.NumericalReadings.First(x => x.Parameter == "L2").Value;
             double L3 = _in.NumericalReadings.First(x => x.Parameter == "L3").Value;
@@ -175,6 +180,7 @@ namespace HeatExchange
             double Do = _in.NumericalReadings.First(x => x.Parameter == "Do").Value;
             double Di = _in.NumericalReadings.First(x => x.Parameter == "Di").Value;
             double DelH = _in.NumericalReadings.First(x => x.Parameter == "DelH").Value;
+            double FinThickness = _in.NumericalReadings.First(x => x.Parameter == "FinThickness").Value;
 
             double QWaterInitial = _in.NumericalReadings.First(x => x.Parameter == "QWaterInitial").Value;
             double TWaterInitial = _in.NumericalReadings.First(x => x.Parameter == "TWaterInitial").Value;
@@ -183,11 +189,13 @@ namespace HeatExchange
             double QAirInitial = _in.NumericalReadings.First(x => x.Parameter == "QAirInitial").Value;
             double TAirInitial = _in.NumericalReadings.First(x => x.Parameter == "TAirInitial").Value;
             double PAirInitial = _in.NumericalReadings.First(x => x.Parameter == "PAirInitial").Value;
-            double Nr = _in.NumericalReadings.First(x => x.Parameter == "Nr").Value;
+            //double Nr = _in.NumericalReadings.First(x => x.Parameter == "Nr").Value;
             double FinPitch = _in.NumericalReadings.First(x => x.Parameter == "FinPitch").Value;
 
-            DensityWaterFinal = PWaterInitial / (287.04 * (273.15 + TWaterInitial));
-            DensityAirFinal = PAirInitial / (287.04 * (273.15 + TAirInitial));
+            double Nr = L3 / Xt;
+
+            DensityWaterFinal = PWaterInitial / (287.04 * (TWaterInitial));
+            DensityAirFinal = PAirInitial / (287.04 * (TAirInitial));
 
             MassFlowWaterFinal = QWaterInitial * DensityWaterFinal;
             MassFlowAirFinal = QAirInitial * DensityAirFinal;
@@ -196,8 +204,9 @@ namespace HeatExchange
             TAirFinal = TAirInitial + Epsilon * (MassFlowWaterFinal / MassFlowAirFinal) * (TWaterInitial - TAirInitial);
             TWaterMeanFinal = (TWaterFinal + TWaterInitial) / 2;
             TAirMeanFinal = (TAirFinal + TAirInitial) / 2;
+            #endregion
 
-
+            #region CoolProp
             //Calculate additional properties
             double ViscosityAir = CoolProp.PropsSI("V", "T", TAirMeanFinal, "P", 101325, "Air");
             double ViscosityWater = CoolProp.PropsSI("V", "T", TWaterMeanFinal, "P", 101325, "Water");
@@ -205,7 +214,9 @@ namespace HeatExchange
             double CpWater = CoolProp.PropsSI("CPMASS", "T", TWaterMeanFinal, "P", 101325, "Water");
             double PrandtlAir = CoolProp.PropsSI("CPMASS", "T", TWaterMeanFinal, "P", 101325, "Water");
             double PrandtlWater = CoolProp.PropsSI("CPMASS", "T", TWaterMeanFinal, "P", 101325, "Water");
+            #endregion
 
+            #region Calculate G and Re
             double G_Air = MassFlowAirFinal /
                               ((_in.SysType == SystemType.Inline)
                                   ? _in.TubeOutsideInlineData.TotalMinFfArea
@@ -228,6 +239,7 @@ namespace HeatExchange
             double F_Water;
             double J_Air;
             double F_Air;
+            #endregion
 
             #region Calculation of J
             if (Nr <= 1)
@@ -237,26 +249,26 @@ namespace HeatExchange
 
                     double c1 = 1.9 - 0.23 * Math.Log(Reynolds_Water);
                     double c2 = -0.236 + 0.126 * Math.Log(Reynolds_Water);
-                    J_Water = 0.108 * Math.Pow(Reynolds_Water, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Di, 1.084) *
+                    J_Water = 0.108 * Math.Pow(Reynolds_Water, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Do, 1.084) *
                               Math.Pow(FinPitch / _in.TubeOutsideInlineData.HydDiameter, -0.786) * Math.Pow(FinPitch / Xt, c2);
 
 
                     c1 = 1.9 - 0.23 * Math.Log(Reynolds_Air);
                     c2 = -0.236 + 0.126 * Math.Log(Reynolds_Air);
-                    J_Air = 0.108 * Math.Pow(Reynolds_Air, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Di, 1.084) *
+                    J_Air = 0.108 * Math.Pow(Reynolds_Air, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Do, 1.084) *
                               Math.Pow(FinPitch / _in.TubeOutsideInlineData.HydDiameter, -0.786) * Math.Pow(FinPitch / Xt, c2);
                 }
                 else
                 {
                     double c1 = 1.9 - 0.23 * Math.Log(Reynolds_Water);
                     double c2 = -0.236 + 0.126 * Math.Log(Reynolds_Water);
-                    J_Water = 0.108 * Math.Pow(Reynolds_Water, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Di, 1.084) *
+                    J_Water = 0.108 * Math.Pow(Reynolds_Water, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Do, 1.084) *
                               Math.Pow(FinPitch / _in.TubeOutsideStaggered.HydDiameter, -0.786) * Math.Pow(FinPitch / Xt, c2);
 
 
                     c1 = 1.9 - 0.23 * Math.Log(Reynolds_Air);
                     c2 = -0.236 + 0.126 * Math.Log(Reynolds_Air);
-                    J_Air = 0.108 * Math.Pow(Reynolds_Air, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Di, 1.084) *
+                    J_Air = 0.108 * Math.Pow(Reynolds_Air, -0.29) * Math.Pow(Xt / Xl, c1) * Math.Pow(FinPitch / Do, 1.084) *
                               Math.Pow(FinPitch / _in.TubeOutsideStaggered.HydDiameter, -0.786) * Math.Pow(FinPitch / Xt, c2);
                 }
             }
@@ -266,55 +278,95 @@ namespace HeatExchange
                 if (_in.SysType == SystemType.Inline)
                 {
                     //Water
-                    double c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Water) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Di, 0.41));
+                    double c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Water) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Do, 0.41));
                     double c4 = -1.224 - 0.076 * Math.Pow(Xl / _in.TubeOutsideInlineData.HydDiameter, 1.42) / Math.Log(Reynolds_Water);
                     double c5 = -0.083 + 0.058 * Nr / Math.Log(Reynolds_Water);
                     double c6 = -5.735 + 1.21 * Math.Log(Reynolds_Water / Nr);
-                    J_Water = 0.086 * Math.Pow(Reynolds_Water, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Di, c5) *
+                    J_Water = 0.086 * Math.Pow(Reynolds_Water, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Do, c5) *
                               Math.Pow(FinPitch / _in.TubeOutsideInlineData.HydDiameter, c6) * Math.Pow(FinPitch / Xt, -0.93);
                     //Air
-                    c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Air) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Di, 0.41));
+                    c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Air) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Do, 0.41));
                     c4 = -1.224 - 0.076 * Math.Pow(Xl / _in.TubeOutsideInlineData.HydDiameter, 1.42) / Math.Log(Reynolds_Air);
                     c5 = -0.083 + 0.058 * Nr / Math.Log(Reynolds_Air);
                     c6 = -5.735 + 1.21 * Math.Log(Reynolds_Air / Nr);
-                    J_Air = 0.086 * Math.Pow(Reynolds_Air, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Di, c5) *
+                    J_Air = 0.086 * Math.Pow(Reynolds_Air, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Do, c5) *
                               Math.Pow(FinPitch / _in.TubeOutsideInlineData.HydDiameter, c6) * Math.Pow(FinPitch / Xt, -0.93);
                 }
                 else
                 {
                     //Water
-                    double c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Water) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Di, 0.41));
+                    double c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Water) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Do, 0.41));
                     double c4 = -1.224 - 0.076 * Math.Pow(Xl / _in.TubeOutsideStaggered.HydDiameter, 1.42) / Math.Log(Reynolds_Water);
                     double c5 = -0.083 + 0.058 * Nr / Math.Log(Reynolds_Water);
                     double c6 = -5.735 + 1.21 * Math.Log(Reynolds_Water / Nr);
-                    J_Water = 0.086 * Math.Pow(Reynolds_Water, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Di, c5) *
+                    J_Water = 0.086 * Math.Pow(Reynolds_Water, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Do, c5) *
                               Math.Pow(FinPitch / _in.TubeOutsideStaggered.HydDiameter, c6) * Math.Pow(FinPitch / Xt, -0.93);
                     //Air
-                    c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Air) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Di, 0.41));
+                    c3 = -0.361 - 0.042 * Nr / Math.Log(Reynolds_Air) + 0.158 * Math.Log(Nr * Math.Pow(FinPitch / Do, 0.41));
                     c4 = -1.224 - 0.076 * Math.Pow(Xl / _in.TubeOutsideStaggered.HydDiameter, 1.42) / Math.Log(Reynolds_Air);
                     c5 = -0.083 + 0.058 * Nr / Math.Log(Reynolds_Air);
                     c6 = -5.735 + 1.21 * Math.Log(Reynolds_Air / Nr);
-                    J_Air = 0.086 * Math.Pow(Reynolds_Air, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Di, c5) *
+                    J_Air = 0.086 * Math.Pow(Reynolds_Air, c3) * Math.Pow(Nr, c4) * Math.Pow(FinPitch / Do, c5) *
                               Math.Pow(FinPitch / _in.TubeOutsideStaggered.HydDiameter, c6) * Math.Pow(FinPitch / Xt, -0.93);
                 }
             }
+            #endregion
+
+            #region H Calculation
+            double H_Water = J_Water * G_Water * CpWater / Math.Pow(PrandtlWater, (double)2 / 3);
+            double H_Air = J_Air * G_Air * CpAir / Math.Pow(PrandtlAir, (double)2 / 3);
             #endregion  
 
-            //double H_Water = J_Water * G_Water * CpWater / Math.Pow(PrandtlWater, (double)2 / 3);
-            //double H_Air = J_Air * G_Air * CpAir / Math.Pow(PrandtlAir, (double)2 / 3);
+            #region F Calculation
+            double c7 = -0.764 + 0.739 * Xt / Xl + 0.177 * FinPitch / Do - 0.00758 / Nr;
+            double c8 = -15.689 + 64.021 / Math.Log(Reynolds_Water);
+            double c9 = 1.696 - 15.695 / Math.Log(Reynolds_Water);
+            F_Water = 0.0267 * Math.Pow(Reynolds_Water, c7) * Math.Pow(Xt / Xl, c8) * Math.Pow(FinPitch / Do, c9);
 
-            //double AbsCpWater;
-            //double AbsCpAir;
+            c7 = -0.764 + 0.739 * Xt / Xl + 0.177 * FinPitch / Do - 0.00758 / Nr;
+            c8 = -15.689 + 64.021 / Math.Log(Reynolds_Air);
+            c9 = 1.696 - 15.695 / Math.Log(Reynolds_Air);
+            F_Air = 0.0267 * Math.Pow(Reynolds_Air, c7) * Math.Pow(Xt / Xl, c8) * Math.Pow(FinPitch / Do, c9);
+            #endregion
 
-            using (StreamWriter streamWriter = new StreamWriter("Output.txt"))
+            #region Fin Efficiency
+
+            double VelocityAir = QAirInitial / (L1 * L3 - Nr * L1 * Do);
+            if (VelocityAir <= 15 && VelocityAir >= 6)
             {
-                streamWriter.WriteLine("JWater," + J_Water);
-                streamWriter.WriteLine("JAir," + J_Air);
-                streamWriter.WriteLine("ReyWater," + Reynolds_Water);
-                streamWriter.WriteLine("ReyAir," + Reynolds_Air);
-                streamWriter.WriteLine("GWater," + G_Water);
-                streamWriter.WriteLine("GAir," + G_Air);
+                MessageBox.Show("Velocity should be between 6m/s and 15m/s", "Input out of limits");
+                return;
             }
+
+            double FinEfficiency = 7.41 * Math.Pow(VelocityAir, -0.12) *
+                                   Math.Pow(Xt / (2 * FinThickness), -2.32) * Math.Pow(Xl / (2 * FinThickness), -0.198);
+
+            double OverallEfficiency = 1 - ((1 - FinEfficiency) * (L2 * L3 - _in.Nt * Math.PI * Do * Do) /
+                ((_in.SysType == SystemType.Inline) ? _in.TubeOutsideInlineData.TotalHeatArea : _in.TubeOutsideStaggered.TotalHeatArea));
+
+            double Rw = (Do - Di) / (_in.MaterialCoeff * (_in.Nt + 1) * 2 * L1 * L2);
+
+            #endregion
+
+            #region UA Calculation
+
+            double UaInverse;
+            if (_in.SysType == SystemType.Inline)
+                UaInverse = Rw + (1 / (OverallEfficiency * H_Water * _in.TubeOutsideInlineData.TotalHeatArea)) +
+                            (1 / (OverallEfficiency * H_Air * _in.TubeOutsideInlineData.TotalHeatArea));
+            else
+                UaInverse = Rw + (1 / (OverallEfficiency * H_Water * _in.TubeOutsideStaggered.TotalHeatArea)) +
+                            (1 / (OverallEfficiency * H_Air * _in.TubeOutsideStaggered.TotalHeatArea));
+
+            double C_Water = MassFlowWaterFinal * CpWater;
+            double C_Air = MassFlowAirFinal * CpAir;
+            double C_Min = Math.Min(C_Air, C_Water);
+            double C_Star = (C_Water / C_Air);
+            if (C_Star > 1) C_Star = 1 / C_Star;
+
+            double NTU = 1 / (UaInverse * C_Min);
+
+            #endregion
         }
     }
 

@@ -14,12 +14,12 @@ namespace HeatExchange.CoolPropHelper
                 if (Environment.Is64BitProcess)
                 {
                     if (File.Exists(startupDirEndingWithSlash + "CoolProp_x64.dll"))
-                        File.Copy(startupDirEndingWithSlash + "CoolProp_x64.dll", resolvedDomainTimeFileName);
+                        File.Copy(startupDirEndingWithSlash + "CoolProp_x64.dll", resolvedDomainTimeFileName, true);
                 }
                 else
                 {
                     if (File.Exists(startupDirEndingWithSlash + "CoolProp_x86.dll"))
-                        File.Copy(startupDirEndingWithSlash + "CoolProp_x86.dll", resolvedDomainTimeFileName);
+                        File.Copy(startupDirEndingWithSlash + "CoolProp_x86.dll", resolvedDomainTimeFileName, true);
                 }
             }
         }
