@@ -21,7 +21,6 @@ namespace HeatExchange
             InitializeComponent();
             Loaded += MainWindow_Loaded;
             XPlatHelper.DeterminePlatform();
-
             GlobalInputs = new SystemInputStream();
         }
 

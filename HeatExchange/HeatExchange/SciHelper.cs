@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
+using HeatExchange.CoolPropHelper;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable JoinDeclarationAndInitializer
 
@@ -369,7 +372,44 @@ namespace HeatExchange
             #endregion
 
             double epsilon = FactorialCompute(25, NTU, C_Star);
+            double ConductionAreaWater = _in.Nt * Math.PI * Di * L1;
+            double ConductionAreaAir = _in.Nt * Math.PI * Do * L1;
 
+            double lambdaAir = _in.MaterialCoeff * ConductionAreaAir / (L1 * C_Air);
+            double lambdaWater = _in.MaterialCoeff * ConductionAreaWater / (L1 * C_Water);
+
+            double M1 = H_Air / H_Water;
+            double M2 = lambdaWater / lambdaAir;
+
+            XPlatHelper.OpenImageTables();
+            double EpsilonRatio;
+
+            while (true)
+            {
+                UserInputDialog userInput = new UserInputDialog("Enter Delta(Epsilon)/Epsilon");
+                userInput.ShowDialog();
+                if (!string.IsNullOrWhiteSpace(userInput.Answer))
+                {
+                    double x;
+                    if (double.TryParse(userInput.Answer, out x))
+                    {
+                        EpsilonRatio = x;
+                        break;
+                    }
+                }
+            }
+
+            double deltaEpsilon = EpsilonRatio * Epsilon;
+            double ActualEpsilon = Epsilon - deltaEpsilon;
+
+            double HeatTransferRate = ActualEpsilon * (TAirInitial - TWaterInitial) * C_Min;
+
+            //Air
+            double prevval = TAirFinal;
+            do
+            {
+                TAirFinal = prevval - HeatTransferRate/C_Air;
+            } while (true);
 
         }
 
