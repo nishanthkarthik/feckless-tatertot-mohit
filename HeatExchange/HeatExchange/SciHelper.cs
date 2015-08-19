@@ -367,6 +367,30 @@ namespace HeatExchange
             double NTU = 1 / (UaInverse * C_Min);
 
             #endregion
+
+            double epsilon = FactorialCompute(25, NTU, C_Star);
+
+
+        }
+
+        public static double FactorialCompute(int n, double ntu, double c_star)
+        {
+            double sum = 0;
+            double nfactorial = MathNet.Numerics.SpecialFunctions.Factorial(n + 1);
+            for (int i = 1; i <= n; i++)
+            {
+                sum += (n + 1 - i) / MathNet.Numerics.SpecialFunctions.Factorial(i) * Math.Pow(ntu, n + i);
+            }
+            sum /= nfactorial;
+
+            double epsilon = 0;
+            double secsum = 0;
+            for (int i = 1; i <= 25; i++)
+            {
+                secsum += Math.Pow(c_star, n);
+            }
+            epsilon = 1 - Math.Exp(-1 * ntu) - Math.Exp(-1 * (1 + c_star) * ntu) * secsum;
+            return epsilon;
         }
     }
 
