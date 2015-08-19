@@ -73,5 +73,7 @@
             <ComboBox Grid.Row="1" Margin="10,0" x:Name="MaterialComboBox" SelectionChanged="MaterialComboBox_OnSelectionChanged" ToolTip="Select material of Tube"/>
             <Button Click="ComputeSecondary_OnClick" Grid.Row="2" Height="30" Content="Compute secondary inputs" Margin="10,5"/>
         </Grid>
+    
+        
     </Grid>
 </Window>
