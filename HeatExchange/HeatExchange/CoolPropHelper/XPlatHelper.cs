@@ -35,5 +35,12 @@ namespace HeatExchange.CoolPropHelper
             Process.Start(s2);
             Process.Start(s3);
         }
+
+        public static void OpenFinalTable()
+        {
+            string startupDirEndingWithSlash = Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName) + "\\";
+            string s1 = startupDirEndingWithSlash + "Assets\\kcke.jpg";
+            Process.Start(s1);
+        }
     }
 }

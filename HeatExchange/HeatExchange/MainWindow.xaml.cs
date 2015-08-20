@@ -63,7 +63,9 @@ namespace HeatExchange
             try
             {
                 SciHelper.ComputeSecondaryInputs(ref GlobalInputs);
-                SciHelper.ComputeAdditionalProperty(ref GlobalInputs);
+                double p1 = 0, p2 = 0;
+                SciHelper.ComputeAdditionalProperty(ref GlobalInputs, ref p1, ref p2);
+                MessageBox.Show("Air = " + p1 + " , Water = " + p2);
             }
             catch (Exception exception)
             {
